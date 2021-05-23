@@ -1,0 +1,149 @@
+---
+title: "Tarea Hidrologia"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tarea exploración de datos hidrológios R Markdown
+### Curso: Procesamiento de Datos Geográficos
+### Estudiante: Ignacio Quirós Paniagua
+### Carné: C06253
+
+La idea de la tarea es la observación, análisis y creación de gráficos estadísticos utilizando los datos de los caudales recolectados durante el periodo de 1973-1983 del Rio Estrella y Rio Banano en Costa Rica.  
+```{r inp}
+inp <- read.csv("FDC.csv", na.strings="")
+# Gráfico de caudales de los rios en estudio.
+plot(inp[,2],
+     main= "Caudales en el tiempo de los Rios Banano y Estrella",
+     type = "l",
+     col="blue",
+     xlab = "Fecha",
+     ylab = "Caudal en ml/día"
+     )
+lines(inp[,3],
+      col= "green")
+```  
+
+En el gráfico anterior se puede observar la comparativa entre ambos rios. Para un mayor orden visual durante el trabajo se utilizará el color verde para la representación del rio Banano y el color azul para representar el rio Estrella.  
+
+#### Comparativa estadistica  
+
+Resultado de la comparativa, los datos son medidos en ml.
+```{r summary}
+summary(inp[,2:3])
+```
+
+### Histogramas  
+Los histogramas en estadística son una representación gráfica de una variable en forma de barras.
+
+##### Histograma del Rio Estrella  
+
+```{r histE}
+hist(inp[,2],
+     main = "Histograma del rio Estrella",
+     xlab= "Rango absoluto (ml/día)",
+     ylab = "Frecuencia",
+     col= "blue"
+     )
+```  
+
+Se puede observar en este histograma como los datos no son parejos y se observa un caudal bajo en el rio Estrella.  
+
+##### Histograma del rio Banano  
+
+```{r histB}
+hist(inp[,3],
+     main = "Histograma del rio Banano",
+     xlab = "Rango absoluto (ml/día)",
+     ylab = "Frecuencia",
+     col= "green"
+     )
+```  
+
+En este caso se puede observar un caudal mayor en el rio Banano en comparación al cuadal reportado para el rio Estrella.  
+
+Para una mejor visualización de los datos se adjudicaron nombres a las variables:  
+```{r names}
+names(inp) <- c("fecha", "Estrella", "Banano")
+attach(inp)
+```  
+
+```{r Tempdate}
+Tempdate <- strptime(inp[,1], format = "%d/%m/%Y")
+```  
+
+```{r MAQ}
+MAQ_Estrella <- tapply(Estrella, format(Tempdate, format = "%Y"), FUN=sum)
+MAQ_Banano <- tapply(Banano, format(Tempdate, format = "%Y"), FUN=sum)
+write.csv(rbind(MAQ_Banano, MAQ_Estrella), file = "MAQrbind.csv")
+``` 
+
+El código anterior fue utilizado para darle un formato a los datos del archivo y así poder crear los MAQ (Mean annual streamflow), además con el código "write.csv' se creó un archivo para poder acceder fácilmente a los datos de cada MAQ con alguna herramienta, ejemplo: Excel.  
+
+### Gráfico de los acumulados anuales de ambos rios  
+
+```{r plot}
+plot(MAQ_Banano,
+     main = "Acumulados anuales entre el Rio Banano (puntos) y Rio Estrella (Línea)",
+     ylim=c(100,3000),
+     ylab = "Comparativa Rio Banano y Rio Estrella",
+     xlab = "Periodo de 10 años (1973-1983)",
+     col= "green"
+     )
+lines(MAQ_Estrella, 
+      col=4,
+      )
+```  
+
+Con dicho gráfico se pueden identificar los "picos" en los caudales de cada río,
+en el año de 1975 para el Rio Banano y 1976 para el Rio Estrella, siendo estos años de fenómeno del niño en CR.  
+
+### Acumulados mensuales  
+
+```{r MMQ}
+MMQ_Estrella <- tapply(Estrella, format(Tempdate, format = "%m"), FUN=sum)
+MMQ_Banano <- tapply(Banano, format(Tempdate, format = "%m"), FUN=sum)
+```  
+
+Este código es muy parecido al utilizado en los MAQ, simplemente se cambio su formato de año (%Y) a mes (%m), teniendo las precauciones de las minúsculas y además cambiando el nombre a MMQ (mean monthly streamflow). 
+
+### Gráfico acumulados mensuales
+
+```{r plotm}
+plot(MMQ_Banano,
+     main = "Acumulados mensuales entre el Rio Banano (puntos) y Rio Estrella (Línea)",
+     ylim=c(100,3000),
+     ylab = "Comparativa Rio Banano y Rio Estrella",
+     xlab = "Periodo de 12 meses",
+     col= "green"
+     )
+lines(MMQ_Estrella, 
+      col=4,
+      )
+```  
+
+En este gráfico se observan los "picos" nuevamente, pero en este caso se encuentran en el mes 11 (Noviembre) para el rio Banano y en le mes 5 (Mayo) para el rio Estrella.  
+
+### Correlación  
+
+##### Análisis de correlación con el método spearman:  
+
+```{r corinp}
+corinp <- cor(inp[,2:3], method = "spearman")
+# LLuvia de datos entre ambos rios
+plot(Estrella, Banano)
+```  
+
+Gráfico representativo de los datos del rio Estrella y Banano.  
+
+### Análisis explorativo de los datos en difetentes gráficos
+```{r inp.lm}
+inp.lm <- lm(Estrella ~ Banano, data=inp)
+summary(inp.lm)
+plot(inp.lm)
+```  
+
+Con este último plot se pueden observar los datos del summary en diferentes gráficos y realizar un analisis explorativo de cada uno.
