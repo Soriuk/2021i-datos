@@ -146,4 +146,4 @@ summary(inp.lm)
 plot(inp.lm)
 ```  
 
-Con este último plot se pueden observar los datos del summary en diferentes gráficos y realizar un analisis explorativo de cada uno.  
+Con este último plot se pueden observar los datos del summary en diferentes gráficos y realizar un analisis explorativo de cada uno.
